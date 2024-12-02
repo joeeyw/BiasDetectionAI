@@ -136,31 +136,68 @@
                     $responseData = json_decode($response, true);
                 
                     if (isset($responseData['prediction'])) {
-                        // Extract the prediction value
-                        $predictionValue = is_array($responseData['prediction']) ? reset($responseData['prediction']) : $responseData['prediction'];
-
-                        // Ensure the prediction value is a scalar and numeric
-                        if (is_scalar($predictionValue)) {
-                            $predictionValue = (float) $predictionValue; // Explicitly cast to float
-                        } else {
-                            $predictionValue = 0.0; // Fallback for non-scalar data
-                        }
-
-                        // Threshold logic
-                        $threshold = 0.6;
-                        $isBiased = $predictionValue > $threshold;
-                        if ($isBiased) {
-                            $resultClass = 'error';
-                            $resultText = 'Biased';
-                        } else {
-                            $resultClass = 'success';
-                            $resultText = 'Not Biased';
-                        }
-                
-                        // Display bias result
-                        echo '<div class="result ' . $resultClass . '">
-                                <p>' . $resultText . '</p>
+                        // Correctly extract the nested float value
+                        $predictionValue = floatval($responseData['prediction'][0][0]);
+                        
+                        // 4 & 5. Use prediction to update a boolean variable isBiased
+                        $isBiased = $predictionValue > 0.5;
+                        
+                        // 6. Display biased status with appropriate color
+                        echo '<div class="result ' . ($isBiased ? 'error' : 'success') . '">
+                                <p>' . ($isBiased ? 'Biased' : 'Unbiased') . ' (Percent Biased: ' . number_format($predictionValue, 2) . ')</p>
                             </div>';
+                    } else {
+                        echo '<div class="result error">
+                                <p>Error: Unable to get prediction.</p>
+                            </div>';
+                    }
+                } else {
+                    echo '<div class="result error">
+                            <p>Error: Could not connect to the API.</p>
+                        </div>';
+                }
+            }
+            ?>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+<!-- if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $userInput = $_POST['user_input'];
+                
+                $apiUrl = 'http://127.0.0.1:5000/predict';
+                $data = json_encode(['text' => $userInput]);
+                
+                $ch = curl_init($apiUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen($data)
+                ]);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                
+                $response = curl_exec($ch);
+                curl_close($ch);
+                
+                if ($response) {
+                    $responseData = json_decode($response, true);
+                
+                    if (isset($responseData['prediction'])) {
+                        // TODO:
+                        // 1. Get the prediction value from the response data
+                        // 2. Store that value as a float
+                        // 3. Display that value
+                        // 4. Use prediction to update a boolean variable isBiased
+                        // 5. If prediction is greater than 0.5, set isBiased to true
+                        // 6. Display biased if isBiased = True in red text, and green unbiased if False
+
+                        
+
+                        
                 
 
                         // BELOW: For testing purposes
@@ -169,10 +206,15 @@
                         //         <p>Prediction: ' . htmlspecialchars($predictionValue) . '</p>
                         //     </div>';
 
-                        // // Display isBiased value
-                        // echo '<div class="result">
-                        //         <p>isBiased: ' . ($isBiased ? 'true' : 'false') . '</p>
-                        //     </div>';
+                        // Display responsedata
+                        echo '<div class="result">
+                                <p>Response Data: ' . htmlspecialchars($response["prediction"]) . '</p>
+                            </div>';
+
+                        // Display isBiased value
+                        echo '<div class="result">
+                                <p>isBiased: ' . ($isBiased ? 'true' : 'false') . '</p>
+                            </div>';
                     } else {
                         echo '<div class="result error">
                                 <p>Error: Unable to get prediction.</p>
@@ -184,9 +226,4 @@
                         </div>';
                 }
                 
-            }
-            ?>
-        </div>
-    </div>
-</body>
-</html>
+            } -->
